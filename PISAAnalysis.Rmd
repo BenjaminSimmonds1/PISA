@@ -1,0 +1,1391 @@
+---
+title: "PISA"
+output: html_notebook
+---
+
+Loading data:
+```{r}
+#packages
+library(readxl)
+library(MASS)
+library(car)
+library(ggplot2)
+library(data.table)
+library(psych)
+library(simpleboot)
+library(psychometric)
+library(boot)
+library(corrplot)
+library(RColorBrewer)
+library(reshape2)
+
+#loading data
+PISA <- read_excel("PISA.xlsx")
+View(PISA)
+
+#renaming columns for later visualisations
+colnames(PISA)[2] <- "Age"
+colnames(PISA)[6] <- "Emotion"
+
+#Creating total ToM scores (Cognitive and Affective Theory of Mind)
+PISA$Cog_ToM <- PISA$do + PISA$think
+PISA$Aff_ToM <- PISA$feel
+```
+
+Making summary statistics:
+```{r}
+#total summary
+summary(PISA)
+
+#total proportion of males to females
+prop.table(table(PISA$sex))
+```
+
+Correlation Matrix
+
+```{r}
+PISACor <- data.frame(PISA$happy, PISA$fear, PISA$disgust, PISA$anger, PISA$surprise, PISA$sad, PISA$neutral, PISA$Emotion, PISA$do, PISA$think, PISA$feel, PISA$sincere, PISA$sarcastic, PISA$Cog_ToM, PISA$EC, PISA$PD, PISA$EE)
+
+#spearman values
+res1 <- corr.test(PISACor, method = "spearman", use = "complete.obs")$r
+res1
+
+#p-values
+res2 <- corr.test(PISACor, method = "spearman", use = "complete.obs")$p
+res2
+```
+
+
+Running multiple linear regressions with control variables:
+```{r}
+#Happy
+multiHappy <- lm(happy ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiHappy)
+
+#Happy
+multiFear <- lm(fear ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiFear)
+
+#Disgust
+multiDisgust <- lm(disgust ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiDisgust)
+
+#Anger
+multiAnger <- lm(anger ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiAnger)
+
+#Surprise
+multiSurprise <- lm(surprise ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiSurprise)
+
+#Sad
+multiSad <- lm(sad ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiSad)
+
+#Neutral
+multiNeutral <- lm(neutral ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiNeutral)
+
+#Emotion
+multiEmotion <- lm(Emotion ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiEmotion)
+
+#Feel
+multiFeel <- lm(feel ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiFeel)
+
+#Think
+multiThink <- lm(think ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiThink)
+
+#Do
+multiDo <- lm(do ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiDo)
+
+#Sincere
+multiSincere <- lm(sincere ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiSincere)
+
+#Sarcastic
+multiSarcastic <- lm(sarcastic ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiSarcastic)
+
+#Cog_ToM
+multiCogToM <- lm(Cog_ToM ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiCogToM)
+
+#EC
+multiEC <- lm(EC ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiEC)
+
+#PD
+multiPD <- lm(PD ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiPD)
+
+#EE
+multiEE <- lm(EE ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA)
+summary(multiEE)
+```
+
+
+
+Checking linearity assumption:
+```{r}
+#Happy
+plot(multiHappy, 1)
+
+#Fear
+plot(multiFear, 1)
+
+#Disgust
+plot(multiDisgust, 1)
+
+#Anger
+plot(multiAnger, 1)
+
+#Surprise
+plot(multiSurprise, 1)
+
+#Sad
+plot(multiSad, 1)
+
+#Neutral
+plot(multiNeutral, 1)
+
+#Emotion
+plot(multiEmotion, 1)
+
+#Feel
+plot(multiFeel, 1)
+
+#Think
+plot(multiThink, 1)
+
+#Do
+plot(multiDo, 1)
+
+#Sincere
+plot(multiSincere, 1)
+
+#Sarcastic
+plot(multiSarcastic, 1)
+
+#Cog_ToM
+plot(multiCogToM, 1)
+
+#EC
+plot(multiEC, 1)
+
+#PD
+plot(multiPD, 1)
+
+#EE
+plot(multiEE, 1)
+
+```
+
+
+
+Checking normality assumption with QQ plots:
+```{r}
+#Happy
+plot(multiHappy, 2)
+
+#Fear
+plot(multiFear, 2)
+
+#Disgust
+plot(multiDisgust, 2)
+
+#Anger
+plot(multiAnger, 2)
+
+#Surprise
+plot(multiSurprise, 2)
+
+#Sad
+plot(multiSad, 2)
+
+#Neutral
+plot(multiNeutral, 2)
+
+#Emotion
+plot(multiEmotion, 2)
+
+#Feel
+plot(multiFeel, 2)
+
+#Think
+plot(multiThink, 2)
+
+#Do
+plot(multiDo, 2)
+
+#Sincere
+plot(multiSincere, 2)
+
+#Sarcastic
+plot(multiSarcastic, 2)
+
+#Cog_ToM
+plot(multiCogToM, 2)
+
+#EC
+plot(multiEC, 2)
+
+#PD
+plot(multiPD, 2)
+
+#EE
+plot(multiEE, 2)
+
+```
+
+
+Checking normality with Shapiro-Wilk:
+```{r}
+#Happy
+sresidMultiHappy <- studres(multiHappy)
+shapiro.test(sresidMultiHappy)
+
+#Fear
+sresidMultiFear <- studres(multiFear)
+shapiro.test(sresidMultiFear)
+
+#Disgust
+sresidMultiDisgust <- studres(multiDisgust)
+shapiro.test(sresidMultiDisgust)
+
+#Anger
+sresidMultiAnger <- studres(multiAnger)
+shapiro.test(sresidMultiAnger)
+
+#Surprise
+sresidMultiSurprise <- studres(multiSurprise)
+shapiro.test(sresidMultiSurprise)
+
+#Sad
+sresidMultiSad <- studres(multiSad)
+shapiro.test(sresidMultiSad)
+
+#Neutral
+sresidMultiNeutral <- studres(multiNeutral)
+shapiro.test(sresidMultiNeutral)
+
+#Emotion
+sresidMultiEmotion <- studres(multiEmotion)
+shapiro.test(sresidMultiEmotion)
+
+#Feel
+sresidMultiFeel <- studres(multiFeel)
+shapiro.test(sresidMultiFeel)
+
+#Think
+sresidMultiThink <- studres(multiThink)
+shapiro.test(sresidMultiThink)
+
+#Do
+sresidMultiDo <- studres(multiDo)
+shapiro.test(sresidMultiDo)
+
+#Sincere
+sresidMultiSincere <- studres(multiSincere)
+shapiro.test(sresidMultiSincere)
+
+#Sarcastic
+sresidMultiSarcastic <- studres(multiSarcastic)
+shapiro.test(sresidMultiSarcastic)
+
+#Cog_ToM
+sresidMultiToMCoG <- studres(multiCogToM)
+shapiro.test(sresidMultiToMCoG)
+
+#EC
+sresidMultiEC <- studres(multiEC)
+shapiro.test(sresidMultiEC)
+
+#PD
+sresidMultiPD <- studres(multiPD)
+shapiro.test(sresidMultiPD)
+
+#EE
+sresidMultiEE <- studres(multiEE)
+shapiro.test(sresidMultiEE)
+
+```
+The residuals of all of models are non-normal except for Emotion, EC and PD. 
+
+Checking the homoscedasticity assumption with scale-location plots:
+```{r}
+
+#Emotion
+plot(multiEmotion, 3)
+
+#EC
+plot(multiEC, 3)
+
+#PD
+plot(multiPD, 3)
+
+```
+
+Checking homoscedasticity with ncvTest():
+```{r}
+
+#Emotion
+ncvTest(multiEmotion)
+
+#EC
+ncvTest(multiEC)
+
+#PD
+ncvTest(multiPD)
+
+```
+Homoscedasticity assumption holds for all.
+
+Bootstrapping to account for non-normality among residuals:
+```{r}
+set.seed(3333)
+#Happy
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(happy ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+b$t0 
+b
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(happy ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(happy ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+#Fear
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(fear ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(fear ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(fear ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Disgust
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(disgust ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(disgust ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(disgust ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Anger
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(anger ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(anger ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(anger ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Surprise
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(surprise ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(surprise ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(surprise ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Sad
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(sad ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(sad ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(sad ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Neutral
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(neutral ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(neutral ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(neutral ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Emotion
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(Emotion ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(Emotion ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(Emotion ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Do
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(do ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(do ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(do ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Think
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(think ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(think ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(think ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Feel
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(feel ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(feel ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(feel ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Sincere
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(sincere ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(sincere ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(sincere ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#Sarcastic
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(sarcastic ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(sarcastic ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(sarcastic ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+#CogTom
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(Cog_ToM ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(Cog_ToM ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(Cog_ToM ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#EC
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(EC ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(EC ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(EC ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#PD
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(PD ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(PD ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(PD ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+
+#EE
+#Finding 95%CI
+boot.reg <- function(data, idx) {
+  fit <- lm(EE ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coef(fit)
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+
+boot.ci(b, index = 2, type = "bca")
+boot.ci(b, index = 3, type = "bca")
+boot.ci(b, index = 4, type = "bca")
+boot.ci(b, index = 5, type = "bca")
+boot.ci(b, index = 6, type = "bca")
+boot.ci(b, index = 7, type = "bca")
+
+#Finding p-values
+boot.reg <- function(data, idx) {
+  fit <- lm(EE ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$coefficients[,4]
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+b
+
+mean(b$t[,2])
+mean(b$t[,3])
+mean(b$t[,4])
+mean(b$t[,5])
+mean(b$t[,6])
+mean(b$t[,7])
+
+#Finding R2
+boot.reg <- function(data, idx) {
+  fit <- lm(EE ~ Age + sex + education + NARTIQ + HADSa + HADSd, data = PISA[idx,])
+  coefs<-coef(fit)
+  coefs
+  summary(fit)$adj.r.squared
+}
+
+b <- boot::boot(PISA, boot.reg, 2000)
+
+mean(b$t)
+
+```
+
+Standardising PISA and running bootstrapped regressions to collect Beta values:
+```{r}
+#standardising all scores except for predictor variables
+PISAStandard <- PISA %>%
+  dplyr::select(-ID, -Age, -sex, -education, -NARTIQ, -HADSa, -HADSd)
+
+PISAnew <- PISA %>%
+  dplyr::select(ID, Age, sex, education, NARTIQ, HADSa, HADSd)
+
+PISAStandard <- lapply(PISAStandard, scale)
+
+PISAStandard <- cbind(PISAStandard, PISAnew)
+
+#bootstrapping to collect beta values.
+set.seed(3333)
+
+#Happy
+happyStandard <- lm(happy ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(happyStandardBoot <- lm.boot(happyStandard, R = 2000))
+
+#Fear
+fearStandard <- lm(fear ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(fearStandardBoot <- lm.boot(fearStandard, R = 2000))
+
+#Disgust
+disgustStandard <- lm(disgust ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(disgustStandardBoot <- lm.boot(disgustStandard, R = 2000))
+
+#Anger
+angerStandard <- lm(anger ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(angerStandardBoot <- lm.boot(angerStandard, R = 2000))
+
+#Surprise
+surpriseStandard <- lm(surprise ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(surpriseStandardBoot <- lm.boot(surpriseStandard, R = 2000))
+
+#Sad
+sadStandard <- lm(sad ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(sadStandardBoot <- lm.boot(sadStandard, R = 2000))
+
+#Neutral
+neutralStandard <- lm(neutral ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(neutralStandardBoot <- lm.boot(neutralStandard, R = 2000))
+
+#Emotion
+EmotionStandard <- lm(Emotion ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(EmotionStandardBoot <- lm.boot(EmotionStandard, R = 2000))
+
+#Do
+doStandard <- lm(do ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(doStandardBoot <- lm.boot(doStandard, R = 2000))
+
+#Think
+thinkStandard <- lm(think ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(thinkStandardBoot <- lm.boot(thinkStandard, R = 2000))
+
+#Feel
+feelStandard <- lm(feel ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(feelStandardBoot <- lm.boot(feelStandard, R = 2000))
+
+#Sincere
+sincereStandard <- lm(sincere ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(sincereStandardBoot <- lm.boot(sincereStandard, R = 2000))
+
+#Sarcastic
+sarcasticStandard <- lm(sarcastic ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(sarcasticStandardBoot <- lm.boot(sarcasticStandard, R = 2000))
+
+#Cognitive Theory of Mind
+CogTomStandard <- lm(Cog_ToM ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(CogTomStandardBoot <- lm.boot(CogTomStandard, R = 2000))
+
+#Empathic Concern
+ECStandard <- lm(EC ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(ECStandardBoot <- lm.boot(ECStandard, R = 2000))
+
+#Personal Distress
+PDStandard <- lm(PD ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(PDStandardBoot <- lm.boot(PDStandard, R = 2000))
+
+#Emotional Empathy
+EEStandard <- lm(EE ~ Age + sex + education + NARTIQ + HADSa + HADSd, PISAStandard)
+(EEStandardBoot <- lm.boot(EEStandard, R = 2000))
+```
+
+Heatmap of standardised coefficients:
+```{r}
+#Setting out all of the beta values
+beta1 <- c(-0.007321,0.070210,-0.011867,0.005283,-0.002919,-0.007833)
+beta2 <- c(-0.007321,0.070210,-0.011867,0.005283,-0.002919,-0.007833)
+beta3 <- c(0.010632,0.521656,-0.002788,0.017886,-0.009282,-0.005646)
+beta4 <- c(-0.022571,0.409137,-0.008287,0.030422,0.005430,-0.014098)
+beta5 <- c(-0.021399,0.393212,-0.035219,0.015616,0.007336,-0.028634)
+beta6 <- c(0.0061321,0.4596303,0.0026954,0.0228639,-0.0143485,-0.0003229)
+beta7 <- c(-0.011866,-0.029460,-0.074377,0.032756,0.003097,-0.041971)
+beta8 <- c(-0.01545,0.70356,0.01122,0.03785,-0.01507,-0.01325)
+beta9 <- c(-0.04474,0.26021,-0.06434,0.01168,-0.01437,-0.02117)
+beta10 <- c(-0.034978,0.060663,-0.038859,0.014658,0.004512,-0.030183)
+beta11 <- c(-0.043546,-0.123750,0.009111,0.007482,-0.014008,0.002636)
+beta12 <- c(-0.042034,0.025543,-0.015439,-0.002917,-0.016124,-0.026639)
+beta13 <- c(-0.02559,0.13511,-0.05909,0.03687,0.01329,0.00421)
+beta14 <- c(-0.043897, 0.174853, -0.056679, 0.014576, -0.005228, -0.028450)
+beta15 <- c(0.012299,0.492174,-0.019322,0.008077,0.051126,-0.072041)
+beta16 <- c(0.010968,0.202151,-0.016857,-0.006822,0.063182,0.071792)
+beta17 <- c(1.807e-02,5.271e-01,-2.400e-02,-7.827e-05,8.733e-02,-3.971e-03)
+
+#compiling into dataframe and heatmap
+heatmap <- data.frame(beta1, beta2, beta3, beta4, beta5, beta6, beta7, beta8, beta9, beta10, beta11, beta12, beta13, beta14, beta15, beta16, beta17)
+heatmap <- as.matrix(heatmap)
+heatmap <- t(heatmap)
+colnames(heatmap)<- c("Age", "Sex", "Education", "NARTIQ", "HADSa", "HADSd") 
+rownames(heatmap)<- c("Happy", "Fear", "Disgust", "Anger", "Surprise", "Sad", "Neutral", "EmotionTotal", "Do", "Think", "Feel", "Sincere", "Sarcastic", "Cognitive ToM", "Empathic Concern", "Personal Distress", "Emotional Empathy")
+heatmap <- round(heatmap,3)
+heatmap
+
+#setting out all of the p-values
+p1 <- c(0.496, 0.468, .577, .455, .432, .458)
+p2 <- c(.219, .276, .091, .327, .435, .470)
+p3 <- c(.365, .037, .505, .179, .460, .473)
+p4 <- c(.108, .072, .501, .022, .454, .440)
+p5 <- c(.153, .082, .295, .211, .477, .394)
+p6 <- c(.442, .048, .500, .074, .421, .476)
+p7 <- c(.332, .477, .057, .017, .553, .292)
+p8 <- c(.229, .001, .494, .003, .436, .488)
+p9 <- c(.004, .224, .104, .323, .452, .424)
+p10 <- c(.027, .495, .306, .270, .488, .370)
+p11 <- c(.004, .433, .498, .439, .436, .414)
+p12 <- c(.007, .516, .472, .529, .449, .381)
+p13 <- c(.094, .412, .123, .018, .448, .533)
+p14 <- c(.006, .356, .141, .268, .491, .384)
+p15 <- c(.337, .047, .434, .414, .171, .121)
+p16 <- c(.363, .336, .444, .446, .080, .120)
+p17 <- c(.203, .030, .410, .514, .023, .517)
+
+#compiling into dataframe
+p_map <- data.frame(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17)
+p_map <- as.matrix(p_map)
+p_map <- t(p_map)
+colnames(p_map)<- c("Age", "Sex", "Education", "NARTIQ", "HADSa", "HADSd")
+rownames(p_map)<- c("Happy", "Fear", "Disgust", "Anger", "Surprise", "Sad", "Neutral", "EmotionTotal", "Do", "Think", "Feel", "Sincere", "Sarcastic", "Cognitive ToM", "Empathic Concern", "Personal Distress", "Emotional Empathy") 
+
+#mergining the two dataframes to create final heatmap.
+tiff(filename = "test8.tiff", compression = "lzw", width = 7, height = 10, units = "in", res = 300)
+heatmapfig <- corrplot(heatmap, col=brewer.pal(n=8, name="RdBu"), tl.col = "black", tl.srt = 60, cl.ratio = 0.4, p.mat = p_map, sig.level = 0.017, insig = "pch", pch.col = "gray49", pch.cex = 2, method = "color", tl.cex = 1.2, cl.cex = 1.1, addgrid.col = "black")
+dev.off()
+```
+
+Visualising betas:
+```{r}
+#creating dataframe comprising the four total scores against age
+betaComp <- data.frame(Age = PISA$Age, Emotion = PISA$Emotion, Cog_ToM = PISA$Cog_ToM, Aff_ToM=PISA$Aff_ToM, EE = PISA$EE)
+betaComp <- melt(setDT(betaComp), id.vars = c("Age"), variable.name = "domain")
+
+#creating labels for the four beta values
+lbls <- data.frame(domain = unique(betaComp$domain), labels = c("B = -.05", "B = -.10", "B = -.05","B = .11"), face = c("plain", "bold", "bold", "plain"))
+
+#establishing predicted values for lines and CI
+ages <- 40:82
+ages <- rep(ages, 4)
+
+#predicted values at each age level, for use in generating regression lines.
+emotionvals <- ages[1:43] * -0.05 + 29.78040
+cogvals <- ages[1:43] * -0.10 + 20.39160
+affvals <- ages[1:43] * -0.05 + 10.42732
+eevals <- ages[1:43] * 0.11 + 24.52901
+values <- c(emotionvals, cogvals, affvals, eevals)
+
+#minimum values, representing the lower bounds of the 95%CI, for use in error shading.
+emotionmin <- ages[1:43] * -0.11 + 29.78040
+cogmin <- ages[1:43] * -0.14 + 20.39160
+affmin <- ages[1:43] * -0.07 + 10.42732
+eemin <- ages[1:43] * -0.01 + 24.52901
+minimum <- c(emotionmin, cogmin, affmin, eemin)
+
+#maximum values, representing the upper bounds of the 95%CI, for use in error shading.
+emotionmax <- ages[1:43] * 0.02 + 29.78040
+cogmax <- ages[1:43] * -0.04 + 20.39160
+affmax <- ages[1:43] * -0.02 + 10.42732
+eemax <- ages[1:43] * 0.25 + 24.52901
+maximum <- c(emotionmax, cogmax, affmax, eemax)
+
+domain <- c(rep("Emotion", 43), rep("Cog_ToM", 43), rep("Aff_ToM", 43), rep("EE", 43))
+
+line <- data.frame(ages, domain, values, minimum, maximum)
+
+betaComp$domain <- factor(betaComp$domain, levels = c("Emotion", "Cog_ToM", "Aff_ToM", "EE"))
+line$domain <- factor(line$domain, levels = c("Emotion", "Cog_ToM", "Aff_ToM", "EE"))
+
+#generating final figure
+tiff(filename = "test9.tiff", width = 5, height = 5, units = "in", res = 250)
+ggplot(betaComp, aes(x = Age, y = value)) + 
+  geom_jitter() + 
+  geom_line(data = line, aes(x = ages, y = values), col = "Red", size = 1) + 
+  geom_ribbon(data = line, aes(x = ages, ymin = minimum, ymax = maximum), inherit.aes = FALSE, alpha = 0.2) +
+  #geom_abline(data = line, aes(intercept = intercepts, slope = min), linetype = "dashed", col = "grey") +
+  #geom_abline(data = line, aes(intercept = intercepts, slope = max), linetype = "dashed", col = "grey") +
+  facet_wrap(vars(domain), ncol = 2, labeller = labeller(domain = 
+    c("Emotion" = "Emotion",
+      "Cog_ToM" = "Cognitive ToM",
+      "Aff_ToM" = "Affective ToM",
+      "EE" = "Emotional Empathy"))) +
+  xlab("Age") +
+  ylab("Value") +
+  geom_text(data = lbls, aes(label = labels, x = 71, y = 54, hjust = 0, vjust = 1, fontface = face))
+dev.off()
+```
+```{r}
+
+
+```
+
+
