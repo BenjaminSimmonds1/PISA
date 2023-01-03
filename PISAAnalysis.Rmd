@@ -1383,9 +1383,3 @@ ggplot(betaComp, aes(x = Age, y = value)) +
   geom_text(data = lbls, aes(label = labels, x = 71, y = 54, hjust = 0, vjust = 1, fontface = face))
 dev.off()
 ```
-```{r}
-
-
-```
-
-
